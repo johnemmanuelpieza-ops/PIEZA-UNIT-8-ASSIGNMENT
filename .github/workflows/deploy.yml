@@ -1,0 +1,60 @@
+
+name: Deploy Flutter Web to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Create CMS configuration
+        env:
+          CMS_SPACE: ${{ secrets.CMS_SPACE }}
+          CMS_TOKEN: ${{ secrets.CMS_TOKEN }}
+        run: |
+          python3 -c "import json, os; json.dump({'CMS': 'contentful', 'CMS_SPACE': os.environ['CMS_SPACE'], 'CMS_TOKEN': os.environ['CMS_TOKEN']}, open('cms.json', 'w'))"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Flutter web
+        run: flutter build web --release --base-href /PIEZA-UNIT-8-ASSIGNMENT/ --dart-define-from-file=cms.json
+
+      - name: Upload web build
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
