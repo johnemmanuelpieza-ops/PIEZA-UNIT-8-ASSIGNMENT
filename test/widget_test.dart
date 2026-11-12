@@ -21,6 +21,6 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.byType(MaterialApp), findsNothing);
+    expect(find.byType(MaterialApp), findsOneWidget);
   });
 }
