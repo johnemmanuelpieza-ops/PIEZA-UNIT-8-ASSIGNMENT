@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 import '../data/fair_data.dart';
@@ -10,8 +11,15 @@ class ScheduleScreen extends StatelessWidget {
   /// Ids of the orgs the student joined. Their rows are highlighted.
   final Set<String> joinedIds;
 
-  String _orgName(String id) =>
-      sampleOrgs.firstWhere((o) => o.id == id).acronym;
+  String _orgName(String id) {
+    final org = sampleOrgs.where((o) => o.id == id);
+
+    if (org.isEmpty) {
+      return id;
+    }
+
+    return org.first.acronym;
+  }
 
   TableRow _row(BuildContext context, ScheduleSlot slot) {
     final joined = joinedIds.contains(slot.orgId);
